@@ -1,6 +1,8 @@
 # Inject
 Dependency injection library for Go (golang)
 
+[![GoDoc](https://godoc.org/github.com/karlkfi/inject?status.svg)](https://godoc.org/github.com/karlkfi/inject)
+
 # Why use Inject?
 
 Unlike most other golang injection frameworks, Inject uses constructor functions to resolve nodes and relationships in the dependency graph.
@@ -41,10 +43,6 @@ func main() {
 In the simple example above, the user defines two dependency relationships: 
 - a depends on b (using constructor pkgA.NewA)
 - b depends on a primative (using constructor pkgA.NewB)
-
-# Go Docs
-
-Generated documentation is available on [godoc.org](https://godoc.org/github.com/karlkfi/inject)
 
 # Installation
 
