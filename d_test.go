@@ -1,6 +1,6 @@
 package inject
 
-type ImplD struct {}
+type ImplD struct{}
 
 func NewD() *ImplD {
 	return &ImplD{}

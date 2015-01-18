@@ -4,11 +4,6 @@ import (
 	"reflect"
 )
 
-type Provider interface {
-	ConstructorType() reflect.Type
-	Provide(Graph) reflect.Value
-}
-
 type provider struct {
 	constructor interface{}
 	argPtrs     []interface{}
@@ -31,9 +26,13 @@ func NewProvider(constructor interface{}, argPtrs ...interface{}) Provider {
 		panic("argPtrs must match constructor arguments")
 	}
 
-	for i := 0; i < argCount; i++ {
-		//todo: validate that argPtrs[i] is a pointer
-		//todo: validate that reflect.ValueOf(argPtrs[i]).Kind() matches fnType.In(i).Kind()
+	for i, argPtr := range argPtrs {
+		if reflect.TypeOf(argPtr).Kind() != reflect.Ptr {
+			panic("argPtrs must all be pointers")
+		}
+		if reflect.ValueOf(argPtr).Elem().Kind() != fnType.In(i).Kind() {
+			panic("argPtrs must match constructor argument types")
+		}
 	}
 
 	return &provider{
@@ -54,6 +53,6 @@ func (p *provider) Provide(g Graph) reflect.Value {
 	return reflect.ValueOf(p.constructor).Call(args)[0]
 }
 
-func (p *provider) ConstructorType() reflect.Type {
-	return reflect.TypeOf(p.constructor)
+func (p *provider) Kind() reflect.Kind {
+	return reflect.TypeOf(p.constructor).Out(0).Kind()
 }

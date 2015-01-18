@@ -42,6 +42,10 @@ In the simple example above, the user defines two dependency relationships:
 - a depends on b (using constructor pkgA.NewA)
 - b depends on a primative (using constructor pkgA.NewB)
 
+# Go Docs
+
+Generated documentation is available on (godoc.org](https://godoc.org/github.com/karlkfi/inject)
+
 # Installation
 
 To install Inject, use go get:

@@ -9,7 +9,7 @@ type InterfaceC interface {
 	fmt.Stringer
 }
 
-type implC struct {}
+type implC struct{}
 
 func NewC() InterfaceC {
 	return &implC{}

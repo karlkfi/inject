@@ -4,17 +4,12 @@ import (
 	"reflect"
 )
 
-type Graph interface {
-	Define(ptr interface{}, provider Provider)
-	Resolve(ptr interface{}) reflect.Value
-	ResolveAll()
-}
-
 type graph struct {
 	providers map[interface{}]Provider
 	values    map[interface{}]reflect.Value
 }
 
+// NewGraph constructs a new Graph, initializing the provider and value maps.
 func NewGraph() Graph {
 	return &graph{
 		providers: map[interface{}]Provider{},
@@ -28,7 +23,7 @@ func (g *graph) Define(ptr interface{}, provider Provider) {
 		panic("ptr is not a pointer")
 	}
 
-	if provider.ConstructorType().Out(0).Kind() != reflect.ValueOf(ptr).Elem().Kind() {
+	if provider.Kind() != reflect.ValueOf(ptr).Elem().Kind() {
 		panic("constructor return value type must match ptr value type")
 	}
 
@@ -55,7 +50,7 @@ func (g *graph) Resolve(ptr interface{}) reflect.Value {
 		return ptrValueElem
 	}
 
-	if provider.ConstructorType().Out(0).Kind() != ptrValueElem.Kind() {
+	if provider.Kind() != ptrValueElem.Kind() {
 		panic("constructor return value type must match ptr value type")
 	}
 
