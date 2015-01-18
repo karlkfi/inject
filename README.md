@@ -3,6 +3,8 @@ Dependency injection library for Go (golang)
 
 [![GoDoc](https://godoc.org/github.com/karlkfi/inject?status.svg)](https://godoc.org/github.com/karlkfi/inject)
 
+[![Build Status](https://travis-ci.org/karlkfi/inject.svg?branch=master)](https://travis-ci.org/karlkfi/inject)
+
 # Why use Inject?
 
 Unlike most other golang injection frameworks, Inject uses constructor functions to resolve nodes and relationships in the dependency graph.
