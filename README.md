@@ -44,7 +44,7 @@ In the simple example above, the user defines two dependency relationships:
 
 # Go Docs
 
-Generated documentation is available on (godoc.org](https://godoc.org/github.com/karlkfi/inject)
+Generated documentation is available on [godoc.org](https://godoc.org/github.com/karlkfi/inject)
 
 # Installation
 
