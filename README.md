@@ -63,15 +63,15 @@ go get -u github.com/karlkfi/inject
 ```
 
 # Dependencies
-Inject has no runtime dependencies. Tests depend on [testify](https://github.com/stretchr/testify). 
+Inject has no runtime dependencies. Tests depend on [Gomega](https://github.com/onsi/gomega).
 
 # Testing
-Tests depend on [testify](https://github.com/stretchr/testify). 
+Tests depend on  [Gomega](https://github.com/onsi/gomega).
 
-To install Testify, use go get:
+To install Gomega, use go get:
 
 ```
-go get github.com/stretchr/testify
+go get github.com/onsi/gomega
 ```
 
 To run Inject tests, use go test:

@@ -3,10 +3,12 @@ package inject
 import (
 	"testing"
 
-	"github.com/stretchr/testify/assert"
+	. "github.com/onsi/gomega"
 )
 
 func TestGraphSupportsInterfaces(t *testing.T) {
+	RegisterTestingT(t)
+
 	graph := NewGraph()
 
 	var (
@@ -16,12 +18,26 @@ func TestGraphSupportsInterfaces(t *testing.T) {
 	graph.Define(&c, NewProvider(NewC))
 	graph.ResolveAll()
 
-	assert.Equal(t, NewC(), c)
+	Expect(c).To(Equal(NewC()))
+	Expect(c.String()).To(Equal("&implC{}"))
 
-	assert.Equal(t, "&implC{}", c.String())
+	expectedString := `&graph\{
+  providers: map\[
+    \*inject\.InterfaceC=0x.*: &provider\{
+      constructor: func\(\) inject\.InterfaceC,
+      argPtrs: \[\]
+    \}
+  \],
+  values: map\[
+    \*inject\.InterfaceC=0x.*: <inject\.InterfaceC Value>
+  \]
+\}`
+	Expect(graph.String()).To(MatchRegexp(expectedString))
 }
 
 func TestGraphSupportsStructPointers(t *testing.T) {
+	RegisterTestingT(t)
+
 	graph := NewGraph()
 
 	var (
@@ -31,12 +47,26 @@ func TestGraphSupportsStructPointers(t *testing.T) {
 	graph.Define(&d, NewProvider(NewD))
 	graph.ResolveAll()
 
-	assert.Equal(t, NewD(), d)
+	Expect(d).To(Equal(NewD()))
+	Expect(d.String()).To(Equal("&ImplD{}"))
 
-	assert.Equal(t, "&ImplD{}", d.String())
+	expectedString := `&graph\{
+  providers: map\[
+    \*\*inject\.ImplD=0x.*: &provider\{
+      constructor: func\(\) \*inject\.ImplD,
+      argPtrs: \[\]
+    \}
+  \],
+  values: map\[
+    \*\*inject\.ImplD=0x.*: <\*inject\.ImplD Value>
+  \]
+\}`
+	Expect(graph.String()).To(MatchRegexp(expectedString))
 }
 
 func TestGraphSupportsConstructorArgs(t *testing.T) {
+	RegisterTestingT(t)
+
 	graph := NewGraph()
 
 	var (
@@ -49,9 +79,31 @@ func TestGraphSupportsConstructorArgs(t *testing.T) {
 	graph.Define(&b, NewProvider(NewB, &name))
 	graph.ResolveAll()
 
-	assert.Equal(t, NewA(NewB(name)), a)
-	assert.Equal(t, NewB(name), b)
+	Expect(a).To(Equal(NewA(NewB(name))))
+	Expect(a.String()).To(Equal("&implA{b: &implB{name: \"FullName\"}}"))
 
-	assert.Equal(t, "&implA{b: &implB{name: \"FullName\"}}", a.String())
-	assert.Equal(t, "&implB{name: \"FullName\"}", b.String())
+	Expect(b).To(Equal(NewB(name)))
+	Expect(b.String()).To(Equal("&implB{name: \"FullName\"}"))
+
+	expectedString := `&graph\{
+  providers: map\[
+    \*inject\.InterfaceA=0x.*: &provider\{
+      constructor: func\(inject\.InterfaceB\) inject\.InterfaceA,
+      argPtrs: \[
+        \*inject\.InterfaceB=0x.*
+      \]
+    \},
+    \*inject\.InterfaceB=0x.*: &provider\{
+      constructor: func\(string\) inject\.InterfaceB,
+      argPtrs: \[
+        \*string=0x.*
+      \]
+    \}
+  \],
+  values: map\[
+    \*inject\.InterfaceA=0x.*: <inject\.InterfaceA Value>,
+    \*inject\.InterfaceB=0x.*: <inject\.InterfaceB Value>
+  \]
+\}`
+	Expect(graph.String()).To(MatchRegexp(expectedString))
 }

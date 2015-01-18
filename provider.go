@@ -2,6 +2,7 @@ package inject
 
 import (
 	"reflect"
+	"fmt"
 )
 
 type provider struct {
@@ -53,6 +54,23 @@ func (p *provider) Provide(g Graph) reflect.Value {
 	return reflect.ValueOf(p.constructor).Call(args)[0]
 }
 
+// Kind returns the kind of value to expect from Provide
 func (p *provider) Kind() reflect.Kind {
 	return reflect.TypeOf(p.constructor).Out(0).Kind()
+}
+
+// String returns a multiline string representation of the provider
+func (p *provider) String() string {
+	return fmt.Sprintf("&provider{\n%s,\n%s\n}",
+		indent(fmt.Sprintf("constructor: %s", reflect.TypeOf(p.constructor)), 1),
+		indent(fmt.Sprintf("argPtrs: %s", p.fmtArgPtrs()), 1),
+	)
+}
+
+func (p *provider) fmtArgPtrs() string {
+	b := make([]string, len(p.argPtrs), len(p.argPtrs))
+	for i, argPtr := range p.argPtrs {
+		b[i] = ptrString(argPtr)
+	}
+	return arrayString(b)
 }

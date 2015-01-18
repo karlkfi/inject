@@ -2,6 +2,7 @@ package inject
 
 import (
 	"reflect"
+	"fmt"
 )
 
 // Graph describes a dependency graph that resolves nodes using well defined relationships.
@@ -10,4 +11,5 @@ type Graph interface {
 	Define(ptr interface{}, provider Provider)
 	Resolve(ptr interface{}) reflect.Value
 	ResolveAll()
+	fmt.Stringer
 }

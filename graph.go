@@ -2,6 +2,7 @@ package inject
 
 import (
 	"reflect"
+	"fmt"
 )
 
 type graph struct {
@@ -70,4 +71,28 @@ func (g *graph) ResolveAll() {
 	for ptr := range g.providers {
 		g.Resolve(ptr)
 	}
+}
+
+// String returns a multiline string representation of the dependency graph
+func (g *graph) String() string {
+	return fmt.Sprintf("&graph{\n%s,\n%s\n}",
+		indent(fmt.Sprintf("providers: %s", g.fmtProviders()), 1),
+		indent(fmt.Sprintf("values: %s", g.fmtValues()), 1),
+	)
+}
+
+func (g *graph) fmtProviders() string {
+	m := make(map[string]string, len(g.providers))
+	for ptr, provider := range g.providers {
+		m[ptrString(ptr)] = provider.String()
+	}
+	return mapString(m)
+}
+
+func (g *graph) fmtValues() string {
+	m := make(map[string]string, len(g.values))
+	for ptr, value := range g.values {
+		m[ptrString(ptr)] = value.String()
+	}
+	return mapString(m)
 }
