@@ -24,11 +24,35 @@ func (g *graph) Define(ptr interface{}, provider Provider) {
 		panic("ptr is not a pointer")
 	}
 
-	if provider.Kind() != reflect.ValueOf(ptr).Elem().Kind() {
+	if provider.Type().Kind() != reflect.ValueOf(ptr).Elem().Kind() {
 		panic("constructor return value type must match ptr value type")
 	}
 
 	g.providers[ptr] = provider
+}
+
+// Resolve a type into a value by recursively resolving its dependencies and/or returning the cached result
+func (g *graph) ResolveByType(ptrType reflect.Type) reflect.Value {
+
+	var (
+		found bool
+		assignablePtr interface{}
+	)
+	for ptr := range g.providers {
+		if reflect.TypeOf(ptr).Elem().AssignableTo(ptrType) {
+			if found {
+				panic("multiple defined pointers are assignable to the specified type")
+			}
+			found = true
+			assignablePtr = ptr
+		}
+	}
+
+	if !found {
+		panic("no defined pointer is assignable to the specified type")
+	}
+
+	return g.Resolve(assignablePtr)
 }
 
 // Resolve a pointer into a value by recursively resolving its dependencies and/or returning the cached result
@@ -51,7 +75,7 @@ func (g *graph) Resolve(ptr interface{}) reflect.Value {
 		return ptrValueElem
 	}
 
-	if provider.Kind() != ptrValueElem.Kind() {
+	if provider.Type().Kind() != ptrValueElem.Kind() {
 		panic("constructor return value type must match ptr value type")
 	}
 

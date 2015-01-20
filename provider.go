@@ -51,12 +51,13 @@ func (p *provider) Provide(g Graph) reflect.Value {
 	for i := 0; i < argCount; i++ {
 		args[i] = g.Resolve(p.argPtrs[i])
 	}
+
 	return reflect.ValueOf(p.constructor).Call(args)[0]
 }
 
-// Kind returns the kind of value to expect from Provide
-func (p *provider) Kind() reflect.Kind {
-	return reflect.TypeOf(p.constructor).Out(0).Kind()
+// Type returns the type of value to expect from Provide
+func (p *provider) Type() reflect.Type {
+	return reflect.TypeOf(p.constructor).Out(0)
 }
 
 // String returns a multiline string representation of the provider
