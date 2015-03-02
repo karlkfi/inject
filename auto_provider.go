@@ -41,7 +41,7 @@ func (p *autoProvider) Provide(g Graph) reflect.Value {
 }
 
 // Type returns the type of value to expect from Provide
-func (p *autoProvider) Type() reflect.Type {
+func (p *autoProvider) ReturnType() reflect.Type {
 	return reflect.TypeOf(p.constructor).Out(0)
 }
 

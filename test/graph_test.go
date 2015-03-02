@@ -2,8 +2,9 @@ package test
 
 import (
 	"testing"
+    "fmt"
 
-	. "github.com/onsi/gomega"
+    . "github.com/onsi/gomega"
 
     "github.com/karlkfi/inject"
 )
@@ -149,4 +150,33 @@ func TestGraphSupportsAutoProvider(t *testing.T) {
   \]
 \}`
 	Expect(graph.String()).To(MatchRegexp(expectedString))
+}
+
+func TestGraphSupportsDownCasting(t *testing.T) {
+    RegisterTestingT(t)
+
+    graph := inject.NewGraph()
+
+    var (
+        d fmt.Stringer
+    )
+
+    graph.Define(&d, inject.NewProvider(NewD))
+    graph.ResolveAll()
+
+    Expect(d).To(Equal(NewD()))
+    Expect(d.String()).To(Equal("&ImplD{}"))
+
+    expectedString := `&graph\{
+  providers: map\[
+    \*fmt\.Stringer=0x.*: &provider\{
+      constructor: func\(\) \*test\.ImplD,
+      argPtrs: \[\]
+    \}
+  \],
+  values: map\[
+    \*fmt\.Stringer=0x.*: <\*test\.ImplD Value>
+  \]
+\}`
+    Expect(graph.String()).To(MatchRegexp(expectedString))
 }

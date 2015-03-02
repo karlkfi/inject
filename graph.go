@@ -24,8 +24,10 @@ func (g *graph) Define(ptr interface{}, provider Provider) {
 		panic("ptr is not a pointer")
 	}
 
-	if provider.Type().Kind() != reflect.ValueOf(ptr).Elem().Kind() {
-		panic("constructor return value type must match ptr value type")
+    targetType := reflect.ValueOf(ptr).Elem().Type()
+
+	if !provider.ReturnType().AssignableTo(targetType) {
+		panic("provider return type must be assignable to the ptr value type")
 	}
 
 	g.providers[ptr] = provider
@@ -75,9 +77,9 @@ func (g *graph) Resolve(ptr interface{}) reflect.Value {
 		return ptrValueElem
 	}
 
-	if provider.Type().Kind() != ptrValueElem.Kind() {
-		panic("constructor return value type must match ptr value type")
-	}
+    if !provider.ReturnType().AssignableTo(ptrValueElem.Type()) {
+        panic("provider return type must be assignable to the ptr value type")
+    }
 
 	value = provider.Provide(g)
 

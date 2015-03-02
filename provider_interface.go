@@ -7,7 +7,7 @@ import (
 
 // Provider describes how to retrieve (or construct) a generic value, given a dependency graph.
 type Provider interface {
-	Type() reflect.Type
+	ReturnType() reflect.Type
 	Provide(Graph) reflect.Value
 	fmt.Stringer
 }
