@@ -1,21 +1,23 @@
-package inject
+package test
 
 import (
 	"testing"
 
 	. "github.com/onsi/gomega"
+
+    "github.com/karlkfi/inject"
 )
 
 func TestGraphSupportsInterfaces(t *testing.T) {
 	RegisterTestingT(t)
 
-	graph := NewGraph()
+	graph := inject.NewGraph()
 
 	var (
 		c InterfaceC
 	)
 
-	graph.Define(&c, NewProvider(NewC))
+	graph.Define(&c, inject.NewProvider(NewC))
 	graph.ResolveAll()
 
 	Expect(c).To(Equal(NewC()))
@@ -23,13 +25,13 @@ func TestGraphSupportsInterfaces(t *testing.T) {
 
 	expectedString := `&graph\{
   providers: map\[
-    \*inject\.InterfaceC=0x.*: &provider\{
-      constructor: func\(\) inject\.InterfaceC,
+    \*test\.InterfaceC=0x.*: &provider\{
+      constructor: func\(\) test\.InterfaceC,
       argPtrs: \[\]
     \}
   \],
   values: map\[
-    \*inject\.InterfaceC=0x.*: <inject\.InterfaceC Value>
+    \*test\.InterfaceC=0x.*: <test\.InterfaceC Value>
   \]
 \}`
 	Expect(graph.String()).To(MatchRegexp(expectedString))
@@ -38,13 +40,13 @@ func TestGraphSupportsInterfaces(t *testing.T) {
 func TestGraphSupportsStructPointers(t *testing.T) {
 	RegisterTestingT(t)
 
-	graph := NewGraph()
+	graph := inject.NewGraph()
 
 	var (
 		d *ImplD
 	)
 
-	graph.Define(&d, NewProvider(NewD))
+	graph.Define(&d, inject.NewProvider(NewD))
 	graph.ResolveAll()
 
 	Expect(d).To(Equal(NewD()))
@@ -52,13 +54,13 @@ func TestGraphSupportsStructPointers(t *testing.T) {
 
 	expectedString := `&graph\{
   providers: map\[
-    \*\*inject\.ImplD=0x.*: &provider\{
-      constructor: func\(\) \*inject\.ImplD,
+    \*\*test\.ImplD=0x.*: &provider\{
+      constructor: func\(\) \*test\.ImplD,
       argPtrs: \[\]
     \}
   \],
   values: map\[
-    \*\*inject\.ImplD=0x.*: <\*inject\.ImplD Value>
+    \*\*test\.ImplD=0x.*: <\*test\.ImplD Value>
   \]
 \}`
 	Expect(graph.String()).To(MatchRegexp(expectedString))
@@ -67,7 +69,7 @@ func TestGraphSupportsStructPointers(t *testing.T) {
 func TestGraphSupportsProviderConstructorArgs(t *testing.T) {
 	RegisterTestingT(t)
 
-	graph := NewGraph()
+	graph := inject.NewGraph()
 
 	var (
 		name = "FullName"
@@ -75,8 +77,8 @@ func TestGraphSupportsProviderConstructorArgs(t *testing.T) {
 		b    InterfaceB
 	)
 
-	graph.Define(&a, NewProvider(NewA, &b))
-	graph.Define(&b, NewProvider(NewB, &name))
+	graph.Define(&a, inject.NewProvider(NewA, &b))
+	graph.Define(&b, inject.NewProvider(NewB, &name))
 	graph.ResolveAll()
 
 	Expect(a).To(Equal(NewA(NewB(name))))
@@ -87,22 +89,22 @@ func TestGraphSupportsProviderConstructorArgs(t *testing.T) {
 
 	expectedString := `&graph\{
   providers: map\[
-    \*inject\.InterfaceA=0x.*: &provider\{
-      constructor: func\(inject\.InterfaceB\) inject\.InterfaceA,
+    \*test\.InterfaceA=0x.*: &provider\{
+      constructor: func\(test\.InterfaceB\) test\.InterfaceA,
       argPtrs: \[
-        \*inject\.InterfaceB=0x.*
+        \*test\.InterfaceB=0x.*
       \]
     \},
-    \*inject\.InterfaceB=0x.*: &provider\{
-      constructor: func\(string\) inject\.InterfaceB,
+    \*test\.InterfaceB=0x.*: &provider\{
+      constructor: func\(string\) test\.InterfaceB,
       argPtrs: \[
         \*string=0x.*
       \]
     \}
   \],
   values: map\[
-    \*inject\.InterfaceA=0x.*: <inject\.InterfaceA Value>,
-    \*inject\.InterfaceB=0x.*: <inject\.InterfaceB Value>
+    \*test\.InterfaceA=0x.*: <test\.InterfaceA Value>,
+    \*test\.InterfaceB=0x.*: <test\.InterfaceB Value>
   \]
 \}`
 	Expect(graph.String()).To(MatchRegexp(expectedString))
@@ -111,7 +113,7 @@ func TestGraphSupportsProviderConstructorArgs(t *testing.T) {
 func TestGraphSupportsAutoProvider(t *testing.T) {
 	RegisterTestingT(t)
 
-	graph := NewGraph()
+	graph := inject.NewGraph()
 
 	var (
 		name = "FullName"
@@ -119,8 +121,8 @@ func TestGraphSupportsAutoProvider(t *testing.T) {
 		b    InterfaceB
 	)
 
-	graph.Define(&a, NewAutoProvider(NewA))
-	graph.Define(&b, NewProvider(NewB, &name))
+	graph.Define(&a, inject.NewAutoProvider(NewA))
+	graph.Define(&b, inject.NewProvider(NewB, &name))
 	graph.ResolveAll()
 
 	Expect(a).To(Equal(NewA(NewB(name))))
@@ -131,19 +133,19 @@ func TestGraphSupportsAutoProvider(t *testing.T) {
 
 	expectedString := `&graph\{
   providers: map\[
-    \*inject\.InterfaceA=0x.*: &autoProvider\{
-      constructor: func\(inject\.InterfaceB\) inject\.InterfaceA
+    \*test\.InterfaceA=0x.*: &autoProvider\{
+      constructor: func\(test\.InterfaceB\) test\.InterfaceA
     \},
-    \*inject\.InterfaceB=0x.*: &provider\{
-      constructor: func\(string\) inject\.InterfaceB,
+    \*test\.InterfaceB=0x.*: &provider\{
+      constructor: func\(string\) test\.InterfaceB,
       argPtrs: \[
         \*string=0x.*
       \]
     \}
   \],
   values: map\[
-    \*inject\.InterfaceA=0x.*: <inject\.InterfaceA Value>,
-    \*inject\.InterfaceB=0x.*: <inject\.InterfaceB Value>
+    \*test\.InterfaceA=0x.*: <test\.InterfaceA Value>,
+    \*test\.InterfaceB=0x.*: <test\.InterfaceB Value>
   \]
 \}`
 	Expect(graph.String()).To(MatchRegexp(expectedString))

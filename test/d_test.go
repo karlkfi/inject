@@ -1,4 +1,4 @@
-package inject
+package test
 
 type ImplD struct{}
 

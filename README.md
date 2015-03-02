@@ -125,7 +125,7 @@ go get github.com/onsi/gomega
 To run Inject tests, use go test:
 
 ```
-go test github.com/karlkfi/inject
+go test github.com/karlkfi/inject/test
 ```
 
 # License
