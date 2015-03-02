@@ -19,6 +19,10 @@ This has several advantages:
 - Pointers can be used to distinguish between different implementations of the same interface.
 - Pointers can even be used to distinguish between different instances of the same struct.
 
+# Examples
+
+1. [Example Server](http://github.com/karlkfi/inject-example-server) - Example web server with dependency injected controllers
+
 # Usage
 
 ```
