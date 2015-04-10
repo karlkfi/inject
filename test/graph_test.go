@@ -25,14 +25,15 @@ func TestGraphSupportsInterfaces(t *testing.T) {
 	Expect(c.String()).To(Equal("&implC{}"))
 
 	expectedString := `&graph\{
-  providers: map\[
-    \*test\.InterfaceC=0x.*: &provider\{
-      constructor: func\(\) test\.InterfaceC,
-      argPtrs: \[\]
+  definitions: \[
+    &definition\{
+      ptr: \*test\.InterfaceC=0x.*,
+      provider: &provider\{
+        constructor: func\(\) test\.InterfaceC,
+        argPtrs: \[\]
+      \},
+      value: <test\.InterfaceC Value>
     \}
-  \],
-  values: map\[
-    \*test\.InterfaceC=0x.*: <test\.InterfaceC Value>
   \]
 \}`
 	Expect(graph.String()).To(MatchRegexp(expectedString))
@@ -54,14 +55,15 @@ func TestGraphSupportsStructPointers(t *testing.T) {
 	Expect(d.String()).To(Equal("&ImplD{}"))
 
 	expectedString := `&graph\{
-  providers: map\[
-    \*\*test\.ImplD=0x.*: &provider\{
-      constructor: func\(\) \*test\.ImplD,
-      argPtrs: \[\]
+  definitions: \[
+    &definition\{
+      ptr: \*\*test\.ImplD=0x.*,
+      provider: &provider\{
+        constructor: func\(\) \*test\.ImplD,
+        argPtrs: \[\]
+      \},
+      value: <\*test\.ImplD Value>
     \}
-  \],
-  values: map\[
-    \*\*test\.ImplD=0x.*: <\*test\.ImplD Value>
   \]
 \}`
 	Expect(graph.String()).To(MatchRegexp(expectedString))
@@ -89,23 +91,27 @@ func TestGraphSupportsProviderConstructorArgs(t *testing.T) {
 	Expect(b.String()).To(Equal("&implB{name: \"FullName\"}"))
 
 	expectedString := `&graph\{
-  providers: map\[
-    \*test\.InterfaceA=0x.*: &provider\{
-      constructor: func\(test\.InterfaceB\) test\.InterfaceA,
-      argPtrs: \[
-        \*test\.InterfaceB=0x.*
-      \]
+  definitions: \[
+    &definition\{
+      ptr: \*test\.InterfaceA=0x.*,
+      provider: &provider\{
+        constructor: func\(test\.InterfaceB\) test\.InterfaceA,
+        argPtrs: \[
+          \*test\.InterfaceB=0x.*
+        \]
+      \},
+      value: <test\.InterfaceA Value>
     \},
-    \*test\.InterfaceB=0x.*: &provider\{
-      constructor: func\(string\) test\.InterfaceB,
-      argPtrs: \[
-        \*string=0x.*
-      \]
+    &definition\{
+      ptr: \*test\.InterfaceB=0x.*,
+      provider: &provider\{
+        constructor: func\(string\) test\.InterfaceB,
+        argPtrs: \[
+          \*string=0x.*
+        \]
+      \},
+      value: <test\.InterfaceB Value>
     \}
-  \],
-  values: map\[
-    \*test\.InterfaceA=0x.*: <test\.InterfaceA Value>,
-    \*test\.InterfaceB=0x.*: <test\.InterfaceB Value>
   \]
 \}`
 	Expect(graph.String()).To(MatchRegexp(expectedString))
@@ -133,20 +139,24 @@ func TestGraphSupportsAutoProvider(t *testing.T) {
 	Expect(b.String()).To(Equal("&implB{name: \"FullName\"}"))
 
 	expectedString := `&graph\{
-  providers: map\[
-    \*test\.InterfaceA=0x.*: &autoProvider\{
-      constructor: func\(test\.InterfaceB\) test\.InterfaceA
-    \},
-    \*test\.InterfaceB=0x.*: &provider\{
-      constructor: func\(string\) test\.InterfaceB,
-      argPtrs: \[
-        \*string=0x.*
-      \]
+  definitions: \[
+    &definition\{
+      ptr: \*test\.InterfaceA=0x.*,
+      provider: &autoProvider\{
+        constructor: func\(test\.InterfaceB\) test\.InterfaceA
+      \},
+      value: <test\.InterfaceA Value>
+    },
+    &definition\{
+      ptr: \*test\.InterfaceB=0x.*,
+      provider: &provider\{
+        constructor: func\(string\) test\.InterfaceB,
+        argPtrs: \[
+          \*string=0x.*
+        \]
+      \},
+      value: <test\.InterfaceB Value>
     \}
-  \],
-  values: map\[
-    \*test\.InterfaceA=0x.*: <test\.InterfaceA Value>,
-    \*test\.InterfaceB=0x.*: <test\.InterfaceB Value>
   \]
 \}`
 	Expect(graph.String()).To(MatchRegexp(expectedString))
@@ -168,14 +178,61 @@ func TestGraphSupportsDownCasting(t *testing.T) {
     Expect(d.String()).To(Equal("&ImplD{}"))
 
     expectedString := `&graph\{
-  providers: map\[
-    \*fmt\.Stringer=0x.*: &provider\{
-      constructor: func\(\) \*test\.ImplD,
-      argPtrs: \[\]
+  definitions: \[
+    &definition\{
+      ptr: \*fmt\.Stringer=0x.*,
+      provider: &provider\{
+        constructor: func\(\) \*test\.ImplD,
+        argPtrs: \[\]
+      \},
+      value: <\*test\.ImplD Value>
     \}
-  \],
-  values: map\[
-    \*fmt\.Stringer=0x.*: <\*test\.ImplD Value>
+  \]
+\}`
+    Expect(graph.String()).To(MatchRegexp(expectedString))
+}
+
+func TestGraphSupportsPartialResolution(t *testing.T) {
+    RegisterTestingT(t)
+
+    graph := inject.NewGraph()
+
+    var (
+        name = "FullName"
+        a    InterfaceA
+        b    InterfaceB
+    )
+
+    graph.Define(&a, inject.NewProvider(NewA, &b))
+    graph.Define(&b, inject.NewProvider(NewB, &name)).Resolve()
+
+    Expect(a).To(BeNil())
+
+    Expect(b).To(Equal(NewB(name)))
+    Expect(b.String()).To(Equal("&implB{name: \"FullName\"}"))
+
+    expectedString := `&graph\{
+  definitions: \[
+    &definition\{
+      ptr: \*test\.InterfaceA=0x.*,
+      provider: &provider\{
+        constructor: func\(test\.InterfaceB\) test\.InterfaceA,
+        argPtrs: \[
+          \*test\.InterfaceB=0x.*
+        \]
+      \},
+      value: <nil>
+    \},
+    &definition\{
+      ptr: \*test\.InterfaceB=0x.*,
+      provider: &provider\{
+        constructor: func\(string\) test\.InterfaceB,
+        argPtrs: \[
+          \*string=0x.*
+        \]
+      \},
+      value: <test\.InterfaceB Value>
+    \}
   \]
 \}`
     Expect(graph.String()).To(MatchRegexp(expectedString))

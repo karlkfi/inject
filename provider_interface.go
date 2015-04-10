@@ -1,8 +1,8 @@
 package inject
 
 import (
-	"reflect"
 	"fmt"
+	"reflect"
 )
 
 // Provider describes how to retrieve (or construct) a generic value, given a dependency graph.

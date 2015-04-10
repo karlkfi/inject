@@ -1,8 +1,8 @@
 package inject
 
 import (
-	"reflect"
 	"fmt"
+	"reflect"
 )
 
 type provider struct {
@@ -36,14 +36,14 @@ func NewProvider(constructor interface{}, argPtrs ...interface{}) Provider {
 		}
 	}
 
-	return &provider{
+	return provider{
 		constructor: constructor,
 		argPtrs:     argPtrs,
 	}
 }
 
 // Provide returns the result of executing the constructor with argument values resolved from a dependency graph
-func (p *provider) Provide(g Graph) reflect.Value {
+func (p provider) Provide(g Graph) reflect.Value {
 	fnType := reflect.TypeOf(p.constructor)
 
 	argCount := fnType.NumIn()
@@ -56,19 +56,19 @@ func (p *provider) Provide(g Graph) reflect.Value {
 }
 
 // Type returns the type of value to expect from Provide
-func (p *provider) ReturnType() reflect.Type {
+func (p provider) ReturnType() reflect.Type {
 	return reflect.TypeOf(p.constructor).Out(0)
 }
 
 // String returns a multiline string representation of the provider
-func (p *provider) String() string {
+func (p provider) String() string {
 	return fmt.Sprintf("&provider{\n%s,\n%s\n}",
 		indent(fmt.Sprintf("constructor: %s", reflect.TypeOf(p.constructor)), 1),
 		indent(fmt.Sprintf("argPtrs: %s", p.fmtArgPtrs()), 1),
 	)
 }
 
-func (p *provider) fmtArgPtrs() string {
+func (p provider) fmtArgPtrs() string {
 	b := make([]string, len(p.argPtrs), len(p.argPtrs))
 	for i, argPtr := range p.argPtrs {
 		b[i] = ptrString(argPtr)

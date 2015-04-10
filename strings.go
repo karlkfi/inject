@@ -1,15 +1,15 @@
 package inject
 
 import (
-	"strings"
 	"fmt"
 	"reflect"
 	"sort"
+	"strings"
 )
 
 func indent(text string, depth int) string {
 	indent := strings.Repeat("  ", depth)
-	return indent + strings.Replace(text, "\n", "\n" + indent, -1)
+	return indent + strings.Replace(text, "\n", "\n"+indent, -1)
 }
 
 func ptrString(ptr interface{}) string {
@@ -37,4 +37,3 @@ func arrayString(a []string) string {
 	}
 	return fmt.Sprintf("[\n%s\n]", indent(strings.Join(a, ",\n"), 1))
 }
-

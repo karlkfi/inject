@@ -1,8 +1,8 @@
 package inject
 
 import (
-	"reflect"
 	"fmt"
+	"reflect"
 )
 
 type autoProvider struct {
@@ -41,12 +41,12 @@ func (p *autoProvider) Provide(g Graph) reflect.Value {
 }
 
 // Type returns the type of value to expect from Provide
-func (p *autoProvider) ReturnType() reflect.Type {
+func (p autoProvider) ReturnType() reflect.Type {
 	return reflect.TypeOf(p.constructor).Out(0)
 }
 
 // String returns a multiline string representation of the autoProvider
-func (p *autoProvider) String() string {
+func (p autoProvider) String() string {
 	return fmt.Sprintf("&autoProvider{\n%s\n}",
 		indent(fmt.Sprintf("constructor: %s", reflect.TypeOf(p.constructor)), 1),
 	)
