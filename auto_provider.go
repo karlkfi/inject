@@ -22,13 +22,13 @@ func NewAutoProvider(constructor interface{}) Provider {
 		panic("constructor must have exactly 1 return value")
 	}
 
-	return &autoProvider{
+	return autoProvider{
 		constructor: constructor,
 	}
 }
 
 // Provide returns the result of executing the constructor with argument values resolved by type from a dependency graph
-func (p *autoProvider) Provide(g Graph) reflect.Value {
+func (p autoProvider) Provide(g Graph) reflect.Value {
 	fnType := reflect.TypeOf(p.constructor)
 
 	argCount := fnType.NumIn()
