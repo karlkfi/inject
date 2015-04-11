@@ -6,18 +6,18 @@ import (
 )
 
 type Definition interface {
-	Resolve() reflect.Value
+	Ptr() interface{}
+	Resolve(Graph) reflect.Value
 	fmt.Stringer
 }
 
 type definition struct {
 	ptr      interface{}
 	provider Provider
-	graph    Graph
 	value    *reflect.Value
 }
 
-func NewDefinition(ptr interface{}, provider Provider, graph Graph) Definition {
+func NewDefinition(ptr interface{}, provider Provider) Definition {
 	if reflect.TypeOf(ptr).Kind() != reflect.Ptr {
 		panic("ptr is not a pointer")
 	}
@@ -30,16 +30,19 @@ func NewDefinition(ptr interface{}, provider Provider, graph Graph) Definition {
 	return &definition{
 		ptr:      ptr,
 		provider: provider,
-		graph:    graph,
 	}
 }
 
-func (d *definition) Resolve() reflect.Value {
+func (d definition) Ptr() interface{} {
+	return d.ptr
+}
+
+func (d *definition) Resolve(g Graph) reflect.Value {
 	if d.value != nil {
 		return *d.value
 	}
 
-	value := d.provider.Provide(d.graph)
+	value := d.provider.Provide(g)
 
 	// cache the result
 	d.value = &value

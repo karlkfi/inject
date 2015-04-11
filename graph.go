@@ -6,21 +6,40 @@ import (
 	"sort"
 )
 
+// Graph describes a dependency graph that resolves nodes using well defined relationships.
+// These relationships are defined with node pointers and Providers.
+type Graph interface {
+	Add(Definition)
+	Define(ptr interface{}, provider Provider) Definition
+	ResolveByType(ptrType reflect.Type) reflect.Value
+	Resolve(ptr interface{}) reflect.Value
+	ResolveAll()
+	fmt.Stringer
+}
+
 type graph struct {
 	definitions map[interface{}]Definition
 }
 
 // NewGraph constructs a new Graph, initializing the provider and value maps.
-func NewGraph() Graph {
-	return &graph{
-		definitions: map[interface{}]Definition{},
+func NewGraph(defs ...Definition) Graph {
+	defMap := make(map[interface{}]Definition, len(defs))
+	for _, def := range defs {
+		defMap[def.Ptr()] = def
 	}
+	return &graph{
+		definitions: defMap,
+	}
+}
+
+func (g *graph) Add(def Definition) {
+	g.definitions[def.Ptr()] = def
 }
 
 // Define a pointer as being resolved by a provider
 func (g *graph) Define(ptr interface{}, provider Provider) Definition {
-	def := NewDefinition(ptr, provider, g)
-	g.definitions[ptr] = def
+	def := NewDefinition(ptr, provider)
+	g.Add(def)
 	return def
 }
 
@@ -40,7 +59,7 @@ func (g *graph) ResolveByType(ptrType reflect.Type) reflect.Value {
 		panic("no defined pointer is assignable to the specified type")
 	}
 
-	return found.Resolve()
+	return found.Resolve(g)
 }
 
 // Resolve a pointer into a value by recursively resolving its dependencies and/or returning the cached result
@@ -57,13 +76,13 @@ func (g *graph) Resolve(ptr interface{}) reflect.Value {
 		return ptrValueElem
 	}
 
-	return def.Resolve()
+	return def.Resolve(g)
 }
 
 // ResolveAll known pointers into values, caching the results
 func (g *graph) ResolveAll() {
 	for _, def := range g.definitions {
-		def.Resolve()
+		def.Resolve(g)
 	}
 }
 

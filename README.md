@@ -98,6 +98,32 @@ dependencies you need using `graph.Resolve(&ptr)`.
 Because the definitions are uniquely keyed by pointer, you can also share code that produces a general graph, and
 override individual definitions with more specific providers (like tests that replace a few concrete impls with mocks).
 
+# Alternate Usage
+
+Because the API is flexible, there are several ways to do the same thing. Here's another way to define the dependency graph:
+
+```
+func main() {
+	var (
+		primitive = "some string"
+		a    pkgA.InterfaceA
+		b    *pkgB.StructB
+	)
+
+    // define the pointer-provider relationships during graph construction
+	graph := inject.NewGraph(
+		inject.NewDefinition(&a, inject.NewProvider(pkgA.NewA, &b)),
+		inject.NewDefinition(&b, inject.NewProvider(pkgB.NewB, &primitive)),
+	)
+
+	// resolve a and all its (transitive) dependencies
+	graph.Resolve(&a)
+
+    // a is now usable
+	a.DoStuff()
+}
+```
+
 # Installation
 
 To install Inject, use go get:

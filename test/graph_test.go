@@ -1,12 +1,12 @@
 package test
 
 import (
+	"fmt"
 	"testing"
-    "fmt"
 
-    . "github.com/onsi/gomega"
+	. "github.com/onsi/gomega"
 
-    "github.com/karlkfi/inject"
+	"github.com/karlkfi/inject"
 )
 
 func TestGraphSupportsInterfaces(t *testing.T) {
@@ -163,21 +163,21 @@ func TestGraphSupportsAutoProvider(t *testing.T) {
 }
 
 func TestGraphSupportsDownCasting(t *testing.T) {
-    RegisterTestingT(t)
+	RegisterTestingT(t)
 
-    graph := inject.NewGraph()
+	graph := inject.NewGraph()
 
-    var (
-        d fmt.Stringer
-    )
+	var (
+		d fmt.Stringer
+	)
 
-    graph.Define(&d, inject.NewProvider(NewD))
-    graph.ResolveAll()
+	graph.Define(&d, inject.NewProvider(NewD))
+	graph.ResolveAll()
 
-    Expect(d).To(Equal(NewD()))
-    Expect(d.String()).To(Equal("&ImplD{}"))
+	Expect(d).To(Equal(NewD()))
+	Expect(d.String()).To(Equal("&ImplD{}"))
 
-    expectedString := `&graph\{
+	expectedString := `&graph\{
   definitions: \[
     &definition\{
       ptr: \*fmt\.Stringer=0x.*,
@@ -189,29 +189,34 @@ func TestGraphSupportsDownCasting(t *testing.T) {
     \}
   \]
 \}`
-    Expect(graph.String()).To(MatchRegexp(expectedString))
+	Expect(graph.String()).To(MatchRegexp(expectedString))
 }
 
 func TestGraphSupportsPartialResolution(t *testing.T) {
-    RegisterTestingT(t)
+	RegisterTestingT(t)
 
-    graph := inject.NewGraph()
+	var (
+		name = "FullName"
+		a    InterfaceA
+		b    InterfaceB
+	)
 
-    var (
-        name = "FullName"
-        a    InterfaceA
-        b    InterfaceB
-    )
+	graph := inject.NewGraph(
+		inject.NewDefinition(&a, inject.NewProvider(NewA, &b)),
+		inject.NewDefinition(&b, inject.NewProvider(NewB, &name)),
+	)
 
-    graph.Define(&a, inject.NewProvider(NewA, &b))
-    graph.Define(&b, inject.NewProvider(NewB, &name)).Resolve()
+	Expect(a).To(BeNil())
+	Expect(b).To(BeNil())
 
-    Expect(a).To(BeNil())
+	graph.Resolve(&b)
 
-    Expect(b).To(Equal(NewB(name)))
-    Expect(b.String()).To(Equal("&implB{name: \"FullName\"}"))
+	Expect(a).To(BeNil())
 
-    expectedString := `&graph\{
+	Expect(b).To(Equal(NewB(name)))
+	Expect(b.String()).To(Equal("&implB{name: \"FullName\"}"))
+
+	expectedString := `&graph\{
   definitions: \[
     &definition\{
       ptr: \*test\.InterfaceA=0x.*,
@@ -235,5 +240,5 @@ func TestGraphSupportsPartialResolution(t *testing.T) {
     \}
   \]
 \}`
-    Expect(graph.String()).To(MatchRegexp(expectedString))
+	Expect(graph.String()).To(MatchRegexp(expectedString))
 }
