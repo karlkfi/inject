@@ -19,9 +19,20 @@ This has several advantages:
 - Pointers can be used to distinguish between different implementations of the same interface.
 - Pointers can even be used to distinguish between different instances of the same struct.
 
+# Use Cases
+
+Most small applications don't need dependency injection. If you're going to use all the instances you need to construct, then you might as well just construct them and use them imperatively.
+
+The cases where DI becomes useful usually have one or more of the following characteristics.
+
+1. DRYing up dependency construction
+1. Multiple consumers or controllers with overlapping, but not identical, dependency sets
+1. Test code that uses the same dependency setup as the non-test code
+1. Replacing a subset of the dependencies with Mocks, without having to rewrite the non-mock setup
+
 # Examples
 
-1. [Example Server](http://github.com/karlkfi/inject-example-server) - Example web server with dependency injected controllers
+1. [Example Server](http://github.com/karlkfi/inject-example-server) - Example web server with dependency injected controllers & repositories
 
 # Usage
 
