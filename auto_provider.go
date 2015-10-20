@@ -34,7 +34,14 @@ func (p autoProvider) Provide(g Graph) reflect.Value {
 	argCount := fnType.NumIn()
 	args := make([]reflect.Value, argCount, argCount)
 	for i := 0; i < argCount; i++ {
-		args[i] = g.ResolveByType(fnType.In(i))
+		argType := fnType.In(i)
+		values := g.ResolveByType(argType)
+		if len(values) > 1 {
+			panic(fmt.Sprintf("more than one defined pointer is assignable to the provider argument %d of type (%v)", i, argType))
+		} else if len(values) == 0 {
+			panic(fmt.Sprintf("no defined pointer is assignable to the provider argument %d of type (%v)", i, argType))
+		}
+		args[i] = values[0]
 	}
 
 	return reflect.ValueOf(p.constructor).Call(args)[0]

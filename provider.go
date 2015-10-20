@@ -14,22 +14,22 @@ type provider struct {
 func NewProvider(constructor interface{}, argPtrs ...interface{}) Provider {
 	fnValue := reflect.ValueOf(constructor)
 	if fnValue.Kind() != reflect.Func {
-		panic("constructor is not a function")
+		panic(fmt.Sprintf("constructor (%v) is not a function, found %v", fnValue, fnValue.Kind()))
 	}
 
 	fnType := reflect.TypeOf(constructor)
 	if fnType.NumOut() != 1 {
-		panic("constructor must have exactly 1 return value")
+		panic(fmt.Sprintf("constructor must have exactly 1 return value, found %v", fnType.NumOut()))
 	}
 
 	argCount := fnType.NumIn()
 	if argCount != len(argPtrs) {
-		panic("argPtrs must match constructor arguments")
+		panic(fmt.Sprintf("argPtrs (%d) must match constructor arguments (%d)", len(argPtrs), argCount))
 	}
 
 	for i, argPtr := range argPtrs {
 		if reflect.TypeOf(argPtr).Kind() != reflect.Ptr {
-			panic("argPtrs must all be pointers")
+			panic(fmt.Sprintf("argPtrs must all be pointers, found %v", reflect.TypeOf(argPtr)))
 		}
 		if reflect.ValueOf(argPtr).Elem().Kind() != fnType.In(i).Kind() {
 			panic("argPtrs must match constructor argument types")

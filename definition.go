@@ -24,7 +24,7 @@ func NewDefinition(ptr interface{}, provider Provider) Definition {
 
 	targetType := reflect.ValueOf(ptr).Elem().Type()
 	if !provider.ReturnType().AssignableTo(targetType) {
-		panic("provider return type must be assignable to the ptr value type")
+		panic(fmt.Sprintf("provider return type (%v) must be assignable to the ptr value type (%v)", provider.ReturnType(), targetType))
 	}
 
 	return &definition{

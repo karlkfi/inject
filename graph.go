@@ -11,9 +11,10 @@ import (
 type Graph interface {
 	Add(Definition)
 	Define(ptr interface{}, provider Provider) Definition
-	ResolveByType(ptrType reflect.Type) reflect.Value
 	Resolve(ptr interface{}) reflect.Value
-	ResolveAll()
+	ResolveByType(ptrType reflect.Type) []reflect.Value
+	ResolveByAssignableType(ptrType reflect.Type) []reflect.Value
+	ResolveAll() []reflect.Value
 	fmt.Stringer
 }
 
@@ -43,30 +44,11 @@ func (g *graph) Define(ptr interface{}, provider Provider) Definition {
 	return def
 }
 
-// Resolve a type into a value by recursively resolving its dependencies and/or returning the cached result
-func (g *graph) ResolveByType(ptrType reflect.Type) reflect.Value {
-	var found Definition
-	for ptr, def := range g.definitions {
-		if reflect.TypeOf(ptr).Elem().AssignableTo(ptrType) {
-			if found != nil {
-				panic("multiple defined pointers are assignable to the specified type")
-			}
-			found = def
-		}
-	}
-
-	if found == nil {
-		panic("no defined pointer is assignable to the specified type")
-	}
-
-	return found.Resolve(g)
-}
-
 // Resolve a pointer into a value by recursively resolving its dependencies and/or returning the cached result
 func (g *graph) Resolve(ptr interface{}) reflect.Value {
 	ptrType := reflect.TypeOf(ptr)
 	if ptrType.Kind() != reflect.Ptr {
-		panic("ptr is not a pointer")
+		panic(fmt.Sprintf("ptr (%v) is not a pointer", ptrType))
 	}
 
 	ptrValueElem := reflect.ValueOf(ptr).Elem()
@@ -79,11 +61,35 @@ func (g *graph) Resolve(ptr interface{}) reflect.Value {
 	return def.Resolve(g)
 }
 
-// ResolveAll known pointers into values, caching the results
-func (g *graph) ResolveAll() {
-	for _, def := range g.definitions {
-		def.Resolve(g)
+// Resolve a type into a list of values by resolving all defined pointers with that exact type
+func (g *graph) ResolveByType(ptrType reflect.Type) []reflect.Value {
+	var values []reflect.Value
+	for ptr, def := range g.definitions {
+		if reflect.TypeOf(ptr).Elem() == ptrType {
+			values = append(values, def.Resolve(g))
+		}
 	}
+	return values
+}
+
+// Resolve a type into a list of values by resolving all defined pointers assignable to that type
+func (g *graph) ResolveByAssignableType(ptrType reflect.Type) []reflect.Value {
+	var values []reflect.Value
+	for ptr, def := range g.definitions {
+		if reflect.TypeOf(ptr).Elem().AssignableTo(ptrType) {
+			values = append(values, def.Resolve(g))
+		}
+	}
+	return values
+}
+
+// ResolveAll known pointers into values, caching and returning the results
+func (g *graph) ResolveAll() []reflect.Value {
+	var values []reflect.Value
+	for _, def := range g.definitions {
+		values = append(values, def.Resolve(g))
+	}
+	return values
 }
 
 // String returns a multiline string representation of the dependency graph
