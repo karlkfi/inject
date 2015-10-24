@@ -49,7 +49,19 @@ func (p provider) Provide(g Graph) reflect.Value {
 	argCount := fnType.NumIn()
 	args := make([]reflect.Value, argCount, argCount)
 	for i := 0; i < argCount; i++ {
-		args[i] = g.Resolve(p.argPtrs[i])
+		arg := g.Resolve(p.argPtrs[i])
+		argType := arg.Type()
+		inType := fnType.In(i)
+		if !argType.AssignableTo(inType) {
+			if !argType.ConvertibleTo(inType) {
+				panic(fmt.Sprintf(
+					"arg %d of type %q cannot be assigned or converted to type %q for provider constructor (%s)",
+					i, argType, inType, p.constructor,
+				))
+			}
+			arg = arg.Convert(inType)
+		}
+		args[i] = arg
 	}
 
 	return reflect.ValueOf(p.constructor).Call(args)[0]
