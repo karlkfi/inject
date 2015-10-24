@@ -242,3 +242,46 @@ func TestGraphSupportsPartialResolution(t *testing.T) {
 \}`
 	Expect(graph.String()).To(MatchRegexp(expectedString))
 }
+
+func TestGraphLifecycle(t *testing.T) {
+  RegisterTestingT(t)
+
+  var (
+    i *initme
+    f *finalme
+    l *lifecycleme
+  )
+
+  graph := inject.NewGraph(
+    inject.NewDefinition(&i, inject.NewProvider(func() *initme { return &initme{} })),
+    inject.NewDefinition(&f, inject.NewProvider(func() *finalme { return &finalme{} })),
+    inject.NewDefinition(&l, inject.NewProvider(func() *lifecycleme { return &lifecycleme{} })),
+  )
+
+  Expect(i).To(BeNil())
+  Expect(f).To(BeNil())
+  Expect(l).To(BeNil())
+
+  graph.ResolveAll()
+
+  // defined pointer values will be constructed and initialized
+  Expect(i).To(Equal(&initme{initialized: true}))
+  Expect(f).To(Equal(&finalme{finalized: false}))
+  Expect(l).To(Equal(&lifecycleme{initialized: true, finalized: false}))
+
+  ii := i
+  ff := f
+  ll := l
+
+  graph.Finalize()
+
+  // defined pointers will be zeroed
+  Expect(i).To(BeNil())
+  Expect(f).To(BeNil())
+  Expect(l).To(BeNil())
+
+  // values pointed at by defined pointers will be finalized
+  Expect(ii).To(Equal(&initme{initialized: true}))
+  Expect(ff).To(Equal(&finalme{finalized: true}))
+  Expect(ll).To(Equal(&lifecycleme{initialized: true, finalized: true}))
+}

@@ -9,6 +9,7 @@ import (
 // Graph describes a dependency graph that resolves nodes using well defined relationships.
 // These relationships are defined with node pointers and Providers.
 type Graph interface {
+	Finalizable
 	Add(Definition)
 	Define(ptr interface{}, provider Provider) Definition
 	Resolve(ptr interface{}) reflect.Value
@@ -90,6 +91,13 @@ func (g *graph) ResolveAll() []reflect.Value {
 		values = append(values, def.Resolve(g))
 	}
 	return values
+}
+
+// Finalize obscures (finalizes) all the resolved definitions
+func (g *graph) Finalize() {
+	for _, def := range g.definitions {
+		def.Obscure(g)
+	}
 }
 
 // String returns a multiline string representation of the dependency graph

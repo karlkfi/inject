@@ -8,6 +8,7 @@ import (
 type Definition interface {
 	Ptr() interface{}
 	Resolve(Graph) reflect.Value
+	Obscure(g Graph)
 	fmt.Stringer
 }
 
@@ -37,12 +38,19 @@ func (d definition) Ptr() interface{} {
 	return d.ptr
 }
 
+// Resolve calls the provider, initializes the result, and populates the pointer with the result value
 func (d *definition) Resolve(g Graph) reflect.Value {
 	if d.value != nil {
+		// already resolved
 		return *d.value
 	}
 
 	value := d.provider.Provide(g)
+
+	obj, ok := value.Interface().(Initializable)
+	if ok && obj != nil {
+		obj.Initialize()
+	}
 
 	// cache the result
 	d.value = &value
@@ -51,6 +59,27 @@ func (d *definition) Resolve(g Graph) reflect.Value {
 	reflect.ValueOf(d.ptr).Elem().Set(value)
 
 	return value
+}
+
+// Obscure zeros out the pointer value and finalizes its previous value
+func (d *definition) Obscure(g Graph) {
+	if d.value == nil {
+		// already obscured
+		return
+	}
+
+	obj, ok := d.value.Interface().(Finalizable)
+
+	// uncache the result
+	d.value = nil
+
+	// zero out the ptr value
+	ptrValue := reflect.ValueOf(d.ptr).Elem()
+	ptrValue.Set(reflect.Zero(ptrValue.Type()))
+
+	if ok && obj != nil {
+		obj.Finalize()
+	}
 }
 
 func (d definition) String() string {

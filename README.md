@@ -135,6 +135,23 @@ func main() {
 }
 ```
 
+# Object Lifecycle
+
+Definitions that point to structs (or struct pointers or interfaces) that implement a lifcycle interface
+(`Initializable` or `Finalizable`) have special behavior.
+
+When the definition is first resolved, after the provider is called to return the value, the resolver will also call the
+`Initialize()` method on the value, if it has one.
+
+When the definition is later obscured (on graph.Finalize()), after the defined pointer is zeroed, the obscurer will also
+call the `Finalize()` method on the resolved value, if it has one.
+
+These lifecycle methods are optional, but may be useful for opening/closing objects or starting/stopping goroutines.
+
+Resolving/initializing is lazily performed, either when the user calls `graph.Resolve()` or when another resolution causes transitive resolution of its dependencies (ex: provider arguments).
+
+Obscuring/finalizing is performed on all resolved definitions when the user calls `graph.Finalize()`. **If you use any Finalizable objects, you will need to make sure that `graph.Finalize()` is called before the program exits.**
+
 # Installation
 
 To install Inject, use go get:
