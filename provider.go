@@ -23,15 +23,25 @@ func NewProvider(constructor interface{}, argPtrs ...interface{}) Provider {
 	}
 
 	argCount := fnType.NumIn()
-	if argCount != len(argPtrs) {
+	if !fnValue.Type().IsVariadic() && argCount != len(argPtrs) {
 		panic(fmt.Sprintf("argPtrs (%d) must match constructor arguments (%d)", len(argPtrs), argCount))
 	}
 
+	var kind reflect.Kind
 	for i, argPtr := range argPtrs {
+		isVariadic := fnValue.Type().IsVariadic() && (fnType.NumIn() == 1 || i >= fnType.NumIn())
+
+		if i < fnType.NumIn() {
+			kind = fnType.In(i).Kind()
+		} else {
+			kind = fnType.In(fnType.NumIn() - 1).Kind()
+		}
+
 		if reflect.TypeOf(argPtr).Kind() != reflect.Ptr {
 			panic(fmt.Sprintf("argPtrs must all be pointers, found %v", reflect.TypeOf(argPtr)))
 		}
-		if reflect.ValueOf(argPtr).Elem().Kind() != fnType.In(i).Kind() {
+
+		if !isVariadic && reflect.ValueOf(argPtr).Elem().Kind() != kind {
 			panic("argPtrs must match constructor argument types")
 		}
 	}
@@ -47,11 +57,26 @@ func (p provider) Provide(g Graph) reflect.Value {
 	fnType := reflect.TypeOf(p.constructor)
 
 	argCount := fnType.NumIn()
+	if fnType.IsVariadic() {
+		argCount = len(p.argPtrs)
+	}
+
 	args := make([]reflect.Value, argCount, argCount)
+	var inType reflect.Type
 	for i := 0; i < argCount; i++ {
 		arg := g.Resolve(p.argPtrs[i])
 		argType := arg.Type()
-		inType := fnType.In(i)
+
+		if i < fnType.NumIn() {
+			inType = fnType.In(i)
+		} else {
+			inType = fnType.In(fnType.NumIn() - 1)
+		}
+
+		if inType.Kind() == reflect.Slice {
+			inType = inType.Elem()
+		}
+
 		if !argType.AssignableTo(inType) {
 			if !argType.ConvertibleTo(inType) {
 				panic(fmt.Sprintf(
