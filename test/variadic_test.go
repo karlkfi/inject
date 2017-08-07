@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/karlkfi/inject"
-	"github.com/mumia/inject/test/variadic"
+	"github.com/karlkfi/inject/test/variadic"
 	. "github.com/onsi/gomega"
 )
 
