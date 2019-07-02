@@ -1,9 +1,9 @@
 package variadic
 
-type V3 struct {}
+type V3 struct{}
 
-func NewV3() V3 {
-	return V3{}
+func NewV3() *V3 {
+	return &V3{}
 }
 
 func (v3 V3) Something() bool {

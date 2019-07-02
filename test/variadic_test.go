@@ -18,9 +18,7 @@ func TestVariadicNone(t *testing.T) {
 	graph.Define(
 		&container,
 		inject.NewProvider(
-			func() *variadic.VariadicContainer{
-				return variadic.NewVariadicContainer()
-			},
+			variadic.NewVariadicContainer,
 		),
 	)
 	graph.ResolveAll()
@@ -38,9 +36,8 @@ func TestVariadicOne(t *testing.T) {
 	graph.Define(
 		&container,
 		inject.NewProvider(
-			func() *variadic.VariadicContainer{
-				return variadic.NewVariadicContainer(variadic.NewV1())
-			},
+			variadic.NewVariadicContainer,
+			variadic.NewV1(),
 		),
 	)
 	graph.ResolveAll()
@@ -58,12 +55,70 @@ func TestVariadicAll(t *testing.T) {
 	graph.Define(
 		&container,
 		inject.NewProvider(
-			func() *variadic.VariadicContainer{
-				return variadic.NewVariadicContainer(
-					variadic.NewV1(),
-					variadic.NewV2(),
-					variadic.NewV3(),
-				)
+			variadic.NewVariadicContainer,
+			variadic.NewV1(),
+			variadic.NewV2(),
+			variadic.NewV3(),
+		),
+	)
+	graph.ResolveAll()
+
+	Expect(container.GetInstalled()).To(Equal(",v1,v2,v3"))
+}
+
+func TestNotVariadicNone(t *testing.T) {
+	RegisterTestingT(t)
+
+	graph := inject.NewGraph()
+
+	var container *variadic.NotVariadicContainer
+
+	graph.Define(
+		&container,
+		inject.NewProvider(
+			variadic.NewNotVariadicContainer,
+			&[]variadic.Item{},
+		),
+	)
+	graph.ResolveAll()
+
+	Expect(container.GetInstalled()).To(Equal(""))
+}
+
+func TestNotVariadicOne(t *testing.T) {
+	RegisterTestingT(t)
+
+	graph := inject.NewGraph()
+
+	var container *variadic.NotVariadicContainer
+
+	graph.Define(
+		&container,
+		inject.NewProvider(
+			variadic.NewNotVariadicContainer,
+			&[]variadic.Item{variadic.NewV1()},
+		),
+	)
+	graph.ResolveAll()
+
+	Expect(container.GetInstalled()).To(Equal(",v1"))
+}
+
+func TestNotVariadicAll(t *testing.T) {
+	RegisterTestingT(t)
+
+	graph := inject.NewGraph()
+
+	var container *variadic.NotVariadicContainer
+
+	graph.Define(
+		&container,
+		inject.NewProvider(
+			variadic.NewNotVariadicContainer,
+			&[]variadic.Item{
+				variadic.NewV1(),
+				variadic.NewV2(),
+				variadic.NewV3(),
 			},
 		),
 	)
