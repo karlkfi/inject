@@ -67,14 +67,10 @@ func (p provider) Provide(g Graph) reflect.Value {
 		arg := g.Resolve(p.argPtrs[i])
 		argType := arg.Type()
 
-		if i < fnType.NumIn() {
-			inType = fnType.In(i)
+		if fnType.IsVariadic() && i >= fnType.NumIn()-1 {
+			inType = fnType.In(fnType.NumIn() - 1).Elem()
 		} else {
-			inType = fnType.In(fnType.NumIn() - 1)
-		}
-
-		if inType.Kind() == reflect.Slice {
-			inType = inType.Elem()
+			inType = fnType.In(i)
 		}
 
 		if !argType.AssignableTo(inType) {
